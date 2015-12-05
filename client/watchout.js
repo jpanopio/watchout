@@ -5,8 +5,10 @@ var rand = function(num) {
 };
 
 var enemyData = [];
-
-var n=1;
+var score = 0;
+var collisionCount = 0;
+var highScore = 0;
+var n=2;
 
 var height = 700;
 var width = 500;
@@ -23,8 +25,8 @@ for (var i = 0; i < n; i++) {
 
 
 var svgElement = d3.select('.board').selectAll('svg').data([1])  
-    .enter().append('svg')
-    .style({width: width + 'px', height: height + 'px'});
+  .enter().append('svg')
+  .style({width: width + 'px', height: height + 'px'});
 
 
 var fighterData = [{'index': 1, 'x': rand(width), 'y': rand(height)}];
@@ -48,16 +50,34 @@ var fighter = svgElement.selectAll('circle')
     .attr('fill', 'red')
     .call(drag);
 
+var incrementCollision = function() {
+  collisionCount++;
+  d3.select('.collisions').text('Collisions: ' + collisionCount);
+  if (collisionCount >= 5) {
+    if (score > highScore) {
+      d3.select('.highscore').text('High score: ' + score);
+      highScore = score;
+    }
+    score = 0;
+    collisionCount = 0;
+    d3.select('.collisions').text('Collisions: ' + score);
+  } 
+}
+
+var throttledFunction = _.throttle(incrementCollision, 500, {trailing: false});
+
 var detectCollisions = function() {
   var fighterXIndex = fighterData[0]['x'];//('cx');
   var fighterYIndex = fighterData[0]['y'];//('cy');
   var moverXIndex = d3.select('.board').select('svg').selectAll('image').attr('x');
+  
   var moverYIndex = d3.select('.board').select('svg').selectAll('image').attr('y');
   if (Math.sqrt(Math.pow((fighterXIndex - moverXIndex),2) + Math.pow((fighterYIndex - moverYIndex),2)) < 50) {
     //console.log('Collision!!!', fighterXIndex, fighterYIndex, 'enemy', moverXIndex, moverYIndex);
-    
+    throttledFunction();
   }
 }
+
 
 
 var enemies = d3.select('.board').select('svg').selectAll('image').data(enemyData, function(d) {return d.index;})
@@ -75,9 +95,8 @@ var move = function() {
     enemyData[i]['y'] = rand(height);
   }
 
-  // IMPROVE TWEEN!
   d3.select('.board').selectAll('svg').selectAll('image').data(enemyData, function(d) {return d.index;})  
-  .transition().duration(2000)
+  .transition().duration(1000)
   .tween(null, function() {
     return function() {
       detectCollisions();
@@ -89,9 +108,15 @@ var move = function() {
   };
 
 
+
+var incrementScore = function() {
+  score++;
+  d3.select('.current').text('Current score: ' + score);
+}
+
 setInterval(move, 1000);
 setInterval(detectCollisions, 50);
-
+setInterval(incrementScore, 100);
 
 
 
