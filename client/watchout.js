@@ -6,8 +6,12 @@ var rand = function(num) {
 
 var enemyData = [];
 
-var n=20;
+var n=1;
 
+var height = 700;
+var width = 500;
+// var height = 0.9 * window.innerHeight;
+// var width = 0.9 * window.innerWidth;
 for (var i = 0; i < n; i++) {
   enemyData.push({
     'index': i, 
@@ -16,8 +20,6 @@ for (var i = 0; i < n; i++) {
   });
 }
 
-var height = 0.9 * window.innerHeight;
-var width = 0.9 * window.innerWidth;
 
 
 var svgElement = d3.select('.board').selectAll('svg').data([1])  
@@ -26,7 +28,6 @@ var svgElement = d3.select('.board').selectAll('svg').data([1])
 
 
 var fighterData = [{'index': 1, 'x': rand(width), 'y': rand(height)}];
-
 
 var dragmove = function(d) {
   var x = d3.event.x;
@@ -47,14 +48,25 @@ var fighter = svgElement.selectAll('circle')
     .attr('fill', 'red')
     .call(drag);
 
+var detectCollisions = function() {
+  var fighterXIndex = fighterData[0]['x'];//('cx');
+  var fighterYIndex = fighterData[0]['y'];//('cy');
+  var moverXIndex = d3.select('.board').select('svg').selectAll('image').attr('x');
+  var moverYIndex = d3.select('.board').select('svg').selectAll('image').attr('y');
+  if (Math.sqrt(Math.pow((fighterXIndex - moverXIndex),2) + Math.pow((fighterYIndex - moverYIndex),2)) < 50) {
+    //console.log('Collision!!!', fighterXIndex, fighterYIndex, 'enemy', moverXIndex, moverYIndex);
+    
+  }
+}
+
 
 var enemies = d3.select('.board').select('svg').selectAll('image').data(enemyData, function(d) {return d.index;})
     .enter()
     .append('image')
     .attr('xlink:href', 'asteroid.png')
-    .style({width: 50 + 'px', height: 50 + 'px'})
-    .attr('x', function(d){return d.x})
-    .attr('y', function(d){return d.y});
+    .style({width: 50 + 'px', height: 50 + 'px'});
+    // .attr('x', function(d){return d.x})
+    // .attr('y', function(d){return d.y});
 
 
 var move = function() {
@@ -65,27 +77,21 @@ var move = function() {
 
   // IMPROVE TWEEN!
   d3.select('.board').selectAll('svg').selectAll('image').data(enemyData, function(d) {return d.index;})  
-  .transition()
+  .transition().duration(2000)
   .tween(null, function() {
-    var fighterXIndex = fighterData[0]['x'];
-    var fighterYIndex = fighterData[0]['y'];
-
-    for(var i = 0; i < enemyData.length; i++) {
-      var moverXIndex = enemyData[i]['x'] + 25;
-      var moverYIndex = enemyData[i]['y'] + 25;
-      if (Math.sqrt(Math.pow((fighterXIndex - moverXIndex),2) + Math.pow((fighterYIndex - moverYIndex),2)) < 50) {
-        console.log('Collision!!!');
-      }
+    return function() {
+      detectCollisions();
     }
+    
   })
-  .duration(1000)
   .attr('x', function(d){return d.x})
-  .attr('y', function(d){return d.y});
-};
+  .attr('y', function(d){return d.y})
+  };
 
 
+setInterval(move, 1000);
+setInterval(detectCollisions, 50);
 
-setInterval(move, 500);
 
 
 
