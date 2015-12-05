@@ -1,44 +1,72 @@
 // start slingin' some d3 here.
+
+var rand = function(num) {
+  return Math.floor(Math.random()*num);
+};
+
 var enemyData = [];
-n=10;
 
-var makeEnemies = function() {
-  for (var i = 0; i < n; i++) {
-    enemyData.push({'index': i, 'x': Math.floor(Math.random()*600) + 50, 'y': Math.floor(Math.random()*400) + 50});
-  }
+var n=10;
 
-  var svgElement = d3.select('.board').selectAll('svg').data([1])  
+for (var i = 0; i < n; i++) {
+  enemyData.push({
+    'index': i, 
+    'x': rand(width), 
+    'y': rand(height)
+  });
+}
+
+var height = 0.9 * window.innerHeight;
+var width = 0.9 * window.innerWidth;
+
+var svgElement = d3.select('.board').selectAll('svg').data([1])  
     .enter().append('svg')
-    .style({width: 700 + 'px', height: 500 + 'px'});
+    .style({width: width + 'px', height: height + 'px'});
 
-  var enemies = d3.select('.board').select('svg').selectAll('image').data(enemyData, function(d) {return d.index;})
+
+var fighterData = [{'index': 1, 'x': rand(width), 'y': rand(height)}];
+
+
+var dragmove = function(d) {
+  var x = d3.event.x;
+  var y = d3.event.y;
+  fighter.attr("transform", "translate(" + x + "," + y + ")");
+}
+
+
+var drag = d3.behavior.drag().on("drag", dragmove);
+
+var fighter = svgElement.selectAll('circle')
+    .data(fighterData, function(d) {return d.index;})
+    .enter()
+    .append('circle')
+    /*.attr('cx', function(d){return d.x})
+    .attr('cy', function(d){return d.y})*/
+    .attr('r', '25')
+    .attr('fill', 'red')
+    .call(drag);
+
+
+var enemies = d3.select('.board').select('svg').selectAll('image').data(enemyData, function(d) {return d.index;})
     .enter()
     .append('image')
     .attr('xlink:href', 'asteroid.png')
     .style({width: 50 + 'px', height: 50 + 'px'})
     .attr('x', function(d){return d.x})
     .attr('y', function(d){return d.y});
-    // .style({top: function(d){return d.x+ 'px'}, left: function(d){return d.y + 'px'}});
-    /*.style(function(d) {{width: d.x + 'px', height: d.y + 'px'}});*/
-};
 
-makeEnemies(10);
 
-// d3.select('.board').eappend(enemies);
 var move = function() {
   for (var i = 0; i < n; i++) {
     var tempObj = enemyData[i];
-    console.log(enemyData[i]);
-    tempObj['x'] = Math.floor(Math.random()*600) + 50;
-    tempObj['y'] = Math.floor(Math.random()*400) + 50;
+    tempObj['x'] = rand(width);
+    tempObj['y'] = rand(height);
   }
 
   d3.select('.board').selectAll('svg').selectAll('image').data(enemyData, function(d) {return d.index;})  
   .transition().duration(1000)
   .attr('x', function(d){return d.x})
   .attr('y', function(d){return d.y});
-
-  //.attr('transform', 'translate(100, 500)');
-}
+};
 
 setInterval(move, 500);
