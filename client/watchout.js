@@ -8,8 +8,9 @@ var enemyData = [];
 var score = 0;
 var collisionCount = 0;
 var highScore = 0;
-var n = 1;
-var imageWidth = 30;
+var n = 15;
+var fighterSize = 40;
+var imageWidth = 40;
 
 var height = 0.95 * window.innerHeight - 50;
 var width =  0.95 * window.innerWidth;
@@ -26,6 +27,15 @@ for (var i = 0; i < n; i++) {
 var svgElement = d3.select('.board').selectAll('svg').data([1])  
   .enter().append('svg')
   .style({width: width + 'px', height: height + 'px'});
+
+d3.select('svg').append('filter')
+  .attr('id', 'i1')
+  .attr('x', '0%')
+  .attr('width', '100%')
+  .attr('height', '100%');
+
+d3.select('filter').append('feImage')
+  .attr('xlink:href', 'oie_yyYOzMln4k5v.png');
 
 
 var fighterData = [{'index': 1, 'x': rand(width), 'y': rand(height)}];
@@ -47,8 +57,9 @@ var fighter = svgElement.selectAll('circle')
     .data(fighterData, function(d) {return d.index;})
     .enter()
     .append('circle')
-    .attr('r', '25')
-    .attr('fill', 'red')
+    .attr('r', String(fighterSize))
+    .attr('filter', 'url(#i1)')
+    .classed('fighter', true)
     .call(drag);
 
 
@@ -79,7 +90,7 @@ var detectCollisions = function() {
       moverXIndex = item['x'].animVal.value + imageWidth/2;
       moverYIndex = item['y'].animVal.value + imageWidth/2;
 
-      if (Math.sqrt(Math.pow((fighterXIndex - moverXIndex),2) + Math.pow((fighterYIndex - moverYIndex),2)) < (25 + imageWidth/2)) {
+      if (Math.sqrt(Math.pow((fighterXIndex - moverXIndex),2) + Math.pow((fighterYIndex - moverYIndex),2)) < (fighterSize + imageWidth/2)) {
         throttledFunction();
       }
   });
@@ -89,7 +100,8 @@ var detectCollisions = function() {
 var enemies = d3.select('.board').select('svg').selectAll('image').data(enemyData, function(d) {return d.index;})
     .enter()
     .append('image')
-    .attr('xlink:href', 'asteroid.png')
+    .classed('enemy', true)
+    .attr('xlink:href', 'tiefighter.png')
     .style({width: imageWidth + 'px', height: imageWidth + 'px'});
 
 
@@ -100,7 +112,7 @@ var move = function() {
   }
 
   d3.select('.board').selectAll('svg').selectAll('image').data(enemyData, function(d) {return d.index;})  
-  .transition().duration(3000)
+  .transition().duration(1500)
   .tween(null, function() {
     return function() {
       detectCollisions();
